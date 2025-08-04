@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Chapel Hill Weather</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f7f7f7;
+        color: #11294a;
+        text-align: center;
+        padding: 2em;
+      }
+      #weather {
+        font-size: 1.5em;
+        margin-top: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Current Weather in Chapel Hill, NC</h1>
+    <div id="weather">Loading...</div>
+
+    <script>
+      const latitude = 35.9132;
+      const longitude = -79.0558;
+
+      async function fetchWeather() {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const temp = data.current.temperature_2m;
+        const code = data.current.weather_code;
+
+        const descriptions = {
+          0: "Clear sky",
+          1: "Mainly clear",
+          2: "Partly cloudy",
+          3: "Overcast",
+          45: "Fog",
+          48: "Depositing rime fog",
+          51: "Light drizzle",
+          53: "Moderate drizzle",
+          55: "Dense drizzle",
+          61: "Slight rain",
+          63: "Moderate rain",
+          65: "Heavy rain",
+          71: "Slight snow",
+          73: "Moderate snow",
+          75: "Heavy snow",
+          80: "Rain showers",
+          81: "Moderate showers",
+          82: "Violent showers",
+          95: "Thunderstorm",
+          99: "Thunderstorm with hail"
+        };
+
+        const condition = descriptions[code] || "Unknown";
+
+        document.getElementById("weather").innerHTML =
+          `🌡️ ${temp}°F<br>🌤️ ${condition}`;
+      }
+
+      fetchWeather();
+    </script>
+  </body>
+</html>
