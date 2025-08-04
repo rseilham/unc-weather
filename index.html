@@ -1,38 +1,38 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Weather</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #f7f7f7;
-        color: #11294a;
-        text-align: center;
-        padding: 2em;
-        margin: 0;
-      }
-      #weather {
-        font-size: 1.6em;
-        font-weight: 500;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="weather">Loading....</div>
+<head>
+  <meta charset="UTF-8">
+  <title>Weather</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      color: #11294a;
+      text-align: center;
+      padding: 2em;
+      margin: 0;
+    }
+    #weather {
+      font-size: 1.6em;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div id="weather">Loading...</div>
 
-    <script>
-      const latitude = 35.9132;
-      const longitude = -79.0558;
+  <script>
+    const latitude = 35.9132;
+    const longitude = -79.0558;
 
-      async function fetchWeather() {
+    async function fetchWeather() {
+      try {
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`;
-
         const res = await fetch(url);
         const data = await res.json();
 
-        const temp = data.current.temperature_2m;
-        const code = data.current.weather_code;
+        const temp = data.current?.temperature_2m;
+        const code = data.current?.weather_code;
 
         const descriptions = {
           0: "Clear sky",
@@ -57,12 +57,19 @@
           99: "Storm with hail"
         };
 
-        const condition = descriptions[code] || "Unknown";
-
-        document.getElementById("weather").textContent = `${temp}°F • ${condition}`;
+        if (temp != null && code != null) {
+          const condition = descriptions[code] || "Unknown";
+          document.getElementById("weather").textContent = `${temp}°F • ${condition}`;
+        } else {
+          document.getElementById("weather").textContent = "Weather unavailable.";
+        }
+      } catch (e) {
+        console.error(e);
+        document.getElementById("weather").textContent = "Error loading weather.";
       }
+    }
 
-      fetchWeather();
-    </script>
-  </body>
+    fetchWeather();
+  </script>
+</body>
 </html>
