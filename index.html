@@ -2,71 +2,106 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Weather</title>
+  <title>Evening Weather Forecast</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #ffffff;
-      color: #11294a;
+      background: #A7C7E7; /* Light blue */
+      color: #fff;
       text-align: center;
-      padding: 2em;
+      padding: 0;
       margin: 0;
     }
-    #weather {
-      font-size: 1.6em;
-      font-weight: 500;
+    .forecast {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.5em;
+      max-width: 400px;  /* Match FallFest countdown width */
+      margin: 0 auto;    /* Center on screen */
+      padding: 1em 0;
+    }
+    .hour-box {
+      background: #11294A; /* Dark navy */
+      border-radius: 10px;
+      padding: 0.6em;
+      width: 80px;         /* Fixed width for consistency */
+      box-sizing: border-box;
+      flex: 1 1 auto;      /* Let it shrink on small screens */
+    }
+    .time {
+      font-size: 0.8em;
+      color: #FFD100; /* Gold */
+      margin-bottom: 0.3em;
+    }
+    .icon {
+      font-size: 2em;
+      margin-bottom: 0.2em;
+    }
+    .temp {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #fff;
     }
   </style>
 </head>
 <body>
-  <div id="weather">Loading...</div>
+  <div id="forecast" class="forecast">Loading...</div>
 
   <script>
     const latitude = 35.9132;
     const longitude = -79.0558;
 
+    // Weather icons (emoji placeholders)
+    const icons = {
+      0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️", 45: "🌫️", 48: "🌫️",
+      51: "🌦️", 53: "🌦️", 55: "🌦️", 61: "🌧️", 63: "🌧️", 65: "🌧️",
+      71: "🌨️", 73: "🌨️", 75: "🌨️", 80: "🌦️", 81: "🌦️", 82: "🌧️",
+      95: "⛈️", 99: "🌩️"
+    };
+
     async function fetchWeather() {
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America/New_York&start_date=2025-08-17&end_date=2025-08-17`;
         const res = await fetch(url);
         const data = await res.json();
 
-        const temp = data.current?.temperature_2m;
-        const code = data.current?.weather_code;
+        const times = data.hourly.time;
+        const temps = data.hourly.temperature_2m;
+        const codes = data.hourly.weather_code;
 
-        const descriptions = {
-          0: "Clear sky",
-          1: "Mostly clear",
-          2: "Partly cloudy",
-          3: "Overcast",
-          45: "Fog",
-          48: "Rime fog",
-          51: "Light drizzle",
-          53: "Moderate drizzle",
-          55: "Heavy drizzle",
-          61: "Light rain",
-          63: "Moderate rain",
-          65: "Heavy rain",
-          71: "Light snow",
-          73: "Moderate snow",
-          75: "Heavy snow",
-          80: "Rain showers",
-          81: "Moderate showers",
-          82: "Intense showers",
-          95: "Thunderstorm",
-          99: "Storm with hail"
-        };
+        const targetHours = ["18:00", "19:00", "20:00", "21:00"];
+        let html = "";
 
-        if (temp != null && code != null) {
-          const condition = descriptions[code] || "Unknown";
-          document.getElementById("weather").textContent = `${temp}°F • ${condition}`;
-        } else {
-          document.getElementById("weather").textContent = "Weather unavailable.";
-        }
+        targetHours.forEach(hour => {
+          const index = times.findIndex(t => t.endsWith(hour));
+          if (index !== -1) {
+            const temp = Math.round(temps[index]);
+            const code = codes[index];
+            const icon = icons[code] || "❓";
+            const displayTime = formatHour(hour);
+            html += `
+              <div class="hour-box">
+                <div class="time">${displayTime}</div>
+                <div class="icon">${icon}</div>
+                <div class="temp">${temp}°F</div>
+              </div>
+            `;
+          }
+        });
+
+        document.getElementById("forecast").innerHTML = html || "Forecast unavailable.";
       } catch (e) {
         console.error(e);
-        document.getElementById("weather").textContent = "Error loading weather.";
+        document.getElementById("forecast").textContent = "Error loading weather.";
       }
+    }
+
+    function formatHour(hour24) {
+      let h = parseInt(hour24.split(":")[0], 10);
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12;
+      return `${h} ${ampm}`;
     }
 
     fetchWeather();
